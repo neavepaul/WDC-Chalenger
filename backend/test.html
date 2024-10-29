@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Stream</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const eventSource = new EventSource('http://localhost:5000/api/get-tree');
+
+            eventSource.onmessage = function(event) {
+                const node = JSON.parse(event.data);
+                console.log("Received node:", node);
+
+                // Example: Append the node details to the HTML
+                const treeContainer = document.getElementById('tree-container');
+                const nodeElement = document.createElement('div');
+                nodeElement.textContent = `Max: ${node.max_points}, Lando: ${node.lando_points}, Race: ${node.description.type}`;
+                treeContainer.appendChild(nodeElement);
+            };
+
+            eventSource.onerror = function() {
+                console.log("Error in the connection!");
+            };
+        });
+    </script>
+</head>
+<body>
+    <h1>Live Race Tree</h1>
+    <div id="tree-container"></div>
+</body>
+</html>
