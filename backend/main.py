@@ -3,14 +3,13 @@ import matplotlib.pyplot as plt
 from tree import build_tree_stream, serialize_tree, deserialize_tree
 import json
 
-
 scores = {
     'max': 362,
     'lando': 315
 }
 
 
-def visualize_tree(tree_node):
+def visualize_tree(tree_node, title="Tree Visualization"):
     """Visualize the tree using networkx and matplotlib."""
     graph = nx.DiGraph()  # Directed graph
 
@@ -34,14 +33,36 @@ def visualize_tree(tree_node):
 
     # Plot the graph
     plt.figure(figsize=(10, 6))
+    plt.title(title)
     pos = nx.spring_layout(graph)
     edge_labels = nx.get_edge_attributes(graph, 'label')
     nx.draw(graph, pos, with_labels=True, node_color="lightblue", font_size=10, node_size=2000, font_weight="bold")
     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
     plt.show()
 
+
+def prune_tree(node):
+    """Recursively prune branches where Lando has fewer points than Max."""
+    if not node.children:
+        # If it's a leaf and Lando has fewer points than Max, return None to prune this branch
+        if node.lando_points < node.max_points:
+            return None
+        else:
+            return node
+
+    # Recursively prune children
+    pruned_children = []
+    for child in node.children:
+        pruned_child = prune_tree(child)
+        if pruned_child:  # Only keep non-pruned children
+            pruned_children.append(pruned_child)
+
+    node.children = pruned_children
+    return node if pruned_children or node.lando_points >= node.max_points else None
+
+
 def main():
-    remaining_races = ["Simple Race", "2"]  # Only 2 race in this simplified example
+    remaining_races = ["Simple Race", "2"]  # Only 2 races in this simplified example
     initial_max_points = scores['max']
     initial_lando_points = scores['lando']
 
@@ -52,8 +73,15 @@ def main():
     tree_json = json.dumps(serialize_tree(tree_root))
     tree_node = deserialize_tree(json.loads(tree_json))
 
-    # Visualize the race outcome tree
-    visualize_tree(tree_node)
+    # Visualize the full race outcome tree
+    visualize_tree(tree_node, title="Full Race Outcome Tree")
+
+    # Prune the tree to remove branches where Lando loses
+    pruned_tree = prune_tree(tree_node)
+
+    # Visualize the pruned race outcome tree
+    visualize_tree(pruned_tree, title="Pruned Race Outcome Tree")
+
 
 if __name__ == "__main__":
     main()
