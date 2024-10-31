@@ -1,44 +1,49 @@
+from pyvis.network import Network
 import networkx as nx
-import matplotlib.pyplot as plt
-from tree import build_tree_stream, serialize_tree, deserialize_tree
 import json
+from tree import build_tree_stream, serialize_tree, deserialize_tree
 
 scores = {
     'max': 362,
     'lando': 315
 }
 
-
-def visualize_tree(tree_node, title="Tree Visualization"):
-    """Visualize the tree using networkx and matplotlib."""
+def visualize_tree_pyvis(tree_node, filename="tree_visualization.html", title="Tree Visualization"):
+    """Visualize the tree using pyvis and save it to an HTML file."""
     graph = nx.DiGraph()  # Directed graph
 
     # Traverse the tree and add nodes/edges to the graph
     def add_edges(graph, node, parent_description=None, parent_edge_label=None):
-        # If no points, replace with an empty string
         current_description = f"M: {node.max_points}, L: {node.lando_points}"
 
+        # Add the current node
         graph.add_node(current_description)
 
         if parent_description:
+            # Add an edge between the parent and the current node
             graph.add_edge(parent_description, current_description, label=parent_edge_label)
 
+        # Recursively process the children
         for child in node.children:
             max_pos_label = child.description['max_position'] if child.description['max_position'] != 'no_points' else ''
             lando_pos_label = child.description['lando_position'] if child.description['lando_position'] != 'no_points' else ''
             edge_label = f"M: {max_pos_label}, L: {lando_pos_label}"
             add_edges(graph, child, current_description, edge_label)
 
+    # Build the NetworkX graph
     add_edges(graph, tree_node)
 
-    # Plot the graph
-    plt.figure(figsize=(10, 6))
-    plt.title(title)
-    pos = nx.spring_layout(graph)
-    edge_labels = nx.get_edge_attributes(graph, 'label')
-    nx.draw(graph, pos, with_labels=True, node_color="lightblue", font_size=10, node_size=2000, font_weight="bold")
-    nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
-    plt.show()
+    # Create a pyvis network object
+    net = Network(notebook=True, height='750px', width='100%', directed=True)
+
+    # Populate pyvis with nodes and edges from the networkx graph
+    net.from_nx(graph)
+
+    root_description = f"M: {tree_node.max_points}, L: {tree_node.lando_points}"
+    net.get_node(root_description)['color'] = '#C8A2C8'  # Lilac color code
+
+    # Save the interactive graph as an HTML file
+    net.show(filename)
 
 
 def prune_tree(node):
@@ -73,14 +78,14 @@ def main():
     tree_json = json.dumps(serialize_tree(tree_root))
     tree_node = deserialize_tree(json.loads(tree_json))
 
-    # Visualize the full race outcome tree
-    visualize_tree(tree_node, title="Full Race Outcome Tree")
+    # Visualize and save the full race outcome tree
+    visualize_tree_pyvis(tree_node, filename="full_race_outcome_tree.html", title="Full Race Outcome Tree")
 
     # Prune the tree to remove branches where Lando loses
     pruned_tree = prune_tree(tree_node)
 
-    # Visualize the pruned race outcome tree
-    visualize_tree(pruned_tree, title="Pruned Race Outcome Tree")
+    # Visualize and save the pruned race outcome tree
+    visualize_tree_pyvis(pruned_tree, filename="pruned_race_outcome_tree.html", title="Pruned Race Outcome Tree")
 
 
 if __name__ == "__main__":
