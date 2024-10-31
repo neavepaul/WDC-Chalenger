@@ -1,5 +1,10 @@
 import json
+import logging
 from race_simulator import calculate_points, simulate_race_outcomes
+from tqdm import tqdm  # Import tqdm for progress bar
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class TreeNode:
     def __init__(self, max_points, lando_points, description=None, winning_path=False):
@@ -12,34 +17,50 @@ class TreeNode:
     def add_child(self, node):
         self.children.append(node)
 
+# Memoization cache
+memo_cache = {}
+
 def build_tree_stream(current_max_points, current_lando_points, remaining_races):
     """Recursively build a tree of race outcomes."""
+    cache_key = (current_max_points, current_lando_points, tuple(remaining_races))
+    
+    if cache_key in memo_cache:
+        return memo_cache[cache_key]
+
     if not remaining_races:
         return TreeNode(current_max_points, current_lando_points)  # Leaf node
 
     next_race = remaining_races[0]
     root = TreeNode(current_max_points, current_lando_points, description={"race": next_race})
 
-    for max_finish, lando_finish in simulate_race_outcomes():
-        max_new_points = current_max_points + calculate_points(max_finish)
-        lando_new_points = current_lando_points + calculate_points(lando_finish)
+    # Track the total number of combinations
+    combinations = simulate_race_outcomes()
+    total_combinations = len(combinations)
+    logging.info(f"Processing {next_race} with {total_combinations} combinations...")
 
-        # Create a new child node with updated points and positions
-        child_node = TreeNode(
-            max_new_points,
-            lando_new_points,
-            description={
-                "race": next_race,
-                "max_position": max_finish,
-                "lando_position": lando_finish
-            }
-        )
-        root.add_child(child_node)
+    # Use tqdm to create a progress bar
+    with tqdm(total=total_combinations, desc=f"Processing {next_race}") as pbar:
+        for max_finish, lando_finish in combinations:
+            max_new_points = current_max_points + calculate_points(max_finish)
+            lando_new_points = current_lando_points + calculate_points(lando_finish)
 
-        # Recursively build the rest of the tree
-        child_tree = build_tree_stream(max_new_points, lando_new_points, remaining_races[1:])
-        child_node.children = child_tree.children
+            child_node = TreeNode(
+                max_new_points,
+                lando_new_points,
+                description={
+                    "race": next_race,
+                    "max_position": max_finish,
+                    "lando_position": lando_finish
+                }
+            )
+            root.add_child(child_node)
+            pbar.update(1)  # Update the progress bar for each processed combination
 
+            # Recursively build the tree for the remaining races
+            child_tree = build_tree_stream(max_new_points, lando_new_points, remaining_races[1:])
+            child_node.children = child_tree.children  # Attach children to the current node
+
+    memo_cache[cache_key] = root
     return root
 
 def serialize_tree(node):

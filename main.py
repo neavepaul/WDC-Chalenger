@@ -1,7 +1,11 @@
+import json
+import logging
 from pyvis.network import Network
 import networkx as nx
-import json
 from tree import build_tree_stream, serialize_tree, deserialize_tree
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 scores = {
     'max': 362,
@@ -19,22 +23,17 @@ def visualize_tree_pyvis(tree_node, filename="tree_visualization.html", title="T
     """Visualize the tree using pyvis and save it to an HTML file."""
     graph = nx.DiGraph()  # Directed graph
 
-    # Traverse the tree and add nodes/edges to the graph
     def add_edges(graph, node, parent_description=None, parent_edge_label=None, race_name=None):
         current_description = f"M: {node.max_points}, L: {node.lando_points}"
 
-        # Add the current node
         graph.add_node(current_description)
 
         if parent_description:
-            # Get the colour for the current race from the race_schedule dictionary
             race_info = race_schedule.get(race_name, {})
             edge_colour = race_info.get('colour', 'black')  # Default to black if race info is missing
             graph.add_edge(parent_description, current_description, label=parent_edge_label, color=edge_colour)
 
-        # Recursively process the children
         if not node.children:
-            # Color leaf nodes "papaya"
             graph.nodes[current_description]['color'] = '#FF8000'
         else:
             for child in node.children:
@@ -43,37 +42,29 @@ def visualize_tree_pyvis(tree_node, filename="tree_visualization.html", title="T
                 edge_label = f"M: {max_pos_label}, L: {lando_pos_label}"
                 add_edges(graph, child, current_description, edge_label, race_name=child.description['race'])
 
-    # Build the NetworkX graph
     add_edges(graph, tree_node)
 
-    # Create a pyvis network object
     net = Network(notebook=True, height='750px', width='100%', directed=True)
 
-    # Populate pyvis with nodes and edges from the networkx graph
     net.from_nx(graph)
 
-    # Colour the root node lilac
     root_description = f"M: {tree_node.max_points}, L: {tree_node.lando_points}"
     net.get_node(root_description)['color'] = '#E0218a'
 
-    # Save the interactive graph as an HTML file
     net.show(filename)
-
 
 def prune_tree(node):
     """Recursively prune branches where Lando has fewer points than Max."""
     if not node.children:
-        # If it's a leaf and Lando has fewer points than Max, return None to prune this branch
         if node.lando_points < node.max_points:
             return None
         else:
             return node
 
-    # Recursively prune children
     pruned_children = []
     for child in node.children:
         pruned_child = prune_tree(child)
-        if pruned_child:  # Only keep non-pruned children
+        if pruned_child:
             pruned_children.append(pruned_child)
 
     node.children = pruned_children
@@ -84,21 +75,24 @@ def main():
     initial_max_points = scores['max']
     initial_lando_points = scores['lando']
 
-    # Build the race outcome tree
+    logging.info("Starting race outcome tree construction...")
     tree_root = build_tree_stream(initial_max_points, initial_lando_points, remaining_races)
+    logging.info("Race outcome tree construction completed.")
 
-    # Serialize and deserialize the tree for visualization
+    logging.info("Serializing the tree for visualization...")
     tree_json = json.dumps(serialize_tree(tree_root))
     tree_node = deserialize_tree(json.loads(tree_json))
 
-    # Visualize and save the full race outcome tree
+    logging.info("Visualizing the full race outcome tree...")
     visualize_tree_pyvis(tree_node, filename="full_race_outcome_tree.html", title="Full Race Outcome Tree")
 
-    # Prune the tree to remove branches where Lando loses
+    logging.info("Pruning the tree to remove branches where Lando loses...")
     pruned_tree = prune_tree(tree_node)
 
-    # Visualize and save the pruned race outcome tree
+    logging.info("Visualizing the pruned race outcome tree...")
     visualize_tree_pyvis(pruned_tree, filename="pruned_race_outcome_tree.html", title="Pruned Race Outcome Tree")
+
+    logging.info("Execution completed successfully.")
 
 if __name__ == "__main__":
     main()
