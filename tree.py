@@ -1,5 +1,6 @@
 import json
 import logging
+import pickle  # Import pickle for saving/loading objects
 from race_simulator import calculate_points, simulate_race_outcomes
 from tqdm import tqdm  # Import tqdm for progress bar
 
@@ -90,4 +91,15 @@ def count_leaf_nodes(node):
     if not node.children:
         return 1
     return sum(count_leaf_nodes(child) for child in node.children)
+
+def save_tree_to_pickle(tree_node, filename="tree_node.pkl"):
+    """Save the tree node to a pickle file."""
+    with open(filename, 'wb') as file:
+        pickle.dump(tree_node, file)
+    logging.info(f"Tree node saved to {filename}")
+
+def load_tree_from_pickle(filename="tree_node.pkl"):
+    """Load the tree node from a pickle file."""
+    with open(filename, 'rb') as file:
+        return pickle.load(file)
 

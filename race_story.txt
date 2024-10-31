@@ -1,0 +1,11 @@
+This is a situation where Lando can win the WDC in F1...
+Points as of Mexico GP are Max: 362, Lando: 315
+
+Probability of Lando winning the WDC is 0.02
+
+In Brazil, Max finished in position unknown, while Lando was in position unknown. Points after race: Max: 362, Lando: 315
+In Brazil, Max finished in position 7, while Lando was in position 3. Points after race: Max: 368, Lando: 330
+In Las Vegas, Max finished in position 6, while Lando was in position 10. Points after race: Max: 376, Lando: 331
+In Qatar, Max finished in position 10, while Lando was in position 1. Points after race: Max: 377, Lando: 356
+In Abu Dhabi, Max finished in position 9, while Lando was in position 1. Points after race: Max: 379, Lando: 381
+Create an enthralling story detailing the four races that led to Lando winning the WDC. talk about strategies and events also

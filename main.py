@@ -2,7 +2,7 @@ import json
 import logging
 from pyvis.network import Network
 import networkx as nx
-from tree import build_tree_stream, serialize_tree, deserialize_tree, count_leaf_nodes
+from tree import build_tree_stream, serialize_tree, deserialize_tree, count_leaf_nodes, save_tree_to_pickle
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -89,6 +89,9 @@ def main():
     logging.info("Pruning the tree to remove branches where Lando loses...")
     pruned_tree = prune_tree(tree_node)
     
+    # Save the tree node to a pickle file
+    save_tree_to_pickle(tree_node)
+
     logging.info("Visualizing the pruned race outcome tree...")
     visualize_tree_pyvis(pruned_tree, filename="pruned_race_outcome_tree.html", title="Pruned Race Outcome Tree")
 
@@ -100,9 +103,9 @@ def main():
     probability_of_lando_winning = total_leaf_nodes_after_pruning / total_leaf_nodes_before_pruning if total_leaf_nodes_before_pruning > 0 else 0
     logging.info(f"Probability of Lando winning the WDC: {probability_of_lando_winning:.2f}")
 
-    # Display the probability as a string
-    probability_string = f"The probability of Lando winning the World Drivers' Championship is: {probability_of_lando_winning:.2%}"
-    print(probability_string)
+    # Save probability of Lando winning the WDC to a text file  
+    with open("lando_prob.txt", "w") as file:
+        file.write(f"Probability of Lando winning the WDC: {probability_of_lando_winning:.2f}")
 
 if __name__ == "__main__":
     main()
