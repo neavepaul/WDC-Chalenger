@@ -84,3 +84,10 @@ def deserialize_tree(data):
     for child_data in data['children']:
         node.add_child(deserialize_tree(child_data))
     return node
+
+def count_leaf_nodes(node):
+    """Count the number of leaf nodes in the tree."""
+    if not node.children:
+        return 1
+    return sum(count_leaf_nodes(child) for child in node.children)
+

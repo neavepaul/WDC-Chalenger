@@ -4,14 +4,14 @@ import itertools
 race_points = {
     1: 25,
     2: 18,
-    # 3: 15,
-    # 4: 12,
-    # 5: 10,
-    # 6: 8,
-    # 7: 6,
-    # 8: 4,
-    # 9: 2,
-    # 10: 1,
+    3: 15,
+    4: 12,
+    5: 10,
+    6: 8,
+    7: 6,
+    8: 4,
+    9: 2,
+    10: 1,
     "no_points": 0
 }
 
@@ -21,7 +21,7 @@ def calculate_points(finish_pos):
 
 def simulate_race_outcomes():
     """Generate all possible outcomes for Max and Lando."""
-    positions = [1, 2, "no_points"]  # All positions
+    positions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "no_points"]  # All positions
 
     # Generate all combinations of Max's and Lando's positions
     combinations = itertools.product(positions, repeat=2)

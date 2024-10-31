@@ -2,7 +2,7 @@ import json
 import logging
 from pyvis.network import Network
 import networkx as nx
-from tree import build_tree_stream, serialize_tree, deserialize_tree
+from tree import build_tree_stream, serialize_tree, deserialize_tree, count_leaf_nodes
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -76,23 +76,33 @@ def main():
     initial_lando_points = scores['lando']
 
     logging.info("Starting race outcome tree construction...")
-    tree_root = build_tree_stream(initial_max_points, initial_lando_points, remaining_races)
+    tree_node = build_tree_stream(initial_max_points, initial_lando_points, remaining_races)
     logging.info("Race outcome tree construction completed.")
-
-    logging.info("Serializing the tree for visualization...")
-    tree_json = json.dumps(serialize_tree(tree_root))
-    tree_node = deserialize_tree(json.loads(tree_json))
 
     logging.info("Visualizing the full race outcome tree...")
     visualize_tree_pyvis(tree_node, filename="full_race_outcome_tree.html", title="Full Race Outcome Tree")
 
+    logging.info("Counting leaf nodes before pruning...")
+    total_leaf_nodes_before_pruning = count_leaf_nodes(tree_node)
+    logging.info(f"Total leaf nodes before pruning: {total_leaf_nodes_before_pruning}")
+
     logging.info("Pruning the tree to remove branches where Lando loses...")
     pruned_tree = prune_tree(tree_node)
-
+    
     logging.info("Visualizing the pruned race outcome tree...")
     visualize_tree_pyvis(pruned_tree, filename="pruned_race_outcome_tree.html", title="Pruned Race Outcome Tree")
 
-    logging.info("Execution completed successfully.")
+    logging.info("Counting leaf nodes after pruning...")
+    total_leaf_nodes_after_pruning = count_leaf_nodes(pruned_tree)
+    logging.info(f"Total leaf nodes after pruning: {total_leaf_nodes_after_pruning}")
+
+    # Calculate probability of Lando winning the WDC
+    probability_of_lando_winning = total_leaf_nodes_after_pruning / total_leaf_nodes_before_pruning if total_leaf_nodes_before_pruning > 0 else 0
+    logging.info(f"Probability of Lando winning the WDC: {probability_of_lando_winning:.2f}")
+
+    # Display the probability as a string
+    probability_string = f"The probability of Lando winning the World Drivers' Championship is: {probability_of_lando_winning:.2%}"
+    print(probability_string)
 
 if __name__ == "__main__":
     main()
