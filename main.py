@@ -1,15 +1,16 @@
+# main.py
 import json
 import logging
 from pyvis.network import Network
 import networkx as nx
-import imgkit
+import matplotlib.pyplot as plt
 from tree import build_tree_stream, serialize_tree, deserialize_tree, count_leaf_nodes, save_tree_to_pickle
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 scores = {
-    'max': 368,
+    'max': 367,
     'lando': 323
 }
 
@@ -53,6 +54,43 @@ def visualize_tree_pyvis(tree_node, filename="tree_visualization.html", title="T
 
     net.show(filename)
 
+def visualize_tree_networkx(tree_node, filename="pruned_race_outcome_tree.png"):
+    """Render the tree using NetworkX with matplotlib and save it as an image."""
+    graph = nx.DiGraph()
+
+    def add_edges(graph, node, parent_description=None, parent_edge_label=None, race_name=None):
+        current_description = f"M: {node.max_points}, L: {node.lando_points}"
+        graph.add_node(current_description)
+
+        if parent_description:
+            race_info = race_schedule.get(race_name, {})
+            edge_colour = race_info.get('colour', 'black')  # Default to black if race info is missing
+            graph.add_edge(parent_description, current_description, label=parent_edge_label, color=edge_colour)
+
+        if not node.children:
+            graph.nodes[current_description]['color'] = '#FF8000'
+        else:
+            for child in node.children:
+                max_pos_label = child.description['max_position'] if child.description['max_position'] != 'no_points' else ''
+                lando_pos_label = child.description['lando_position'] if child.description['lando_position'] != 'no_points' else ''
+                edge_label = f"M: {max_pos_label}, L: {lando_pos_label}"
+                add_edges(graph, child, current_description, edge_label, race_name=child.description['race'])
+
+    add_edges(graph, tree_node)
+
+    pos = nx.spring_layout(graph, seed=42)
+    edge_colors = [graph[u][v]['color'] for u, v in graph.edges]
+    node_colors = [graph.nodes[node].get('color', '#A0CBE2') for node in graph]
+
+    plt.figure(figsize=(12, 8))
+    nx.draw(graph, pos, with_labels=True, node_color=node_colors, edge_color=edge_colors, node_size=500, font_size=8, font_color="black", arrows=True)
+    edge_labels = nx.get_edge_attributes(graph, 'label')
+    nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_size=7)
+
+    plt.title("Pruned Race Outcome Tree")
+    plt.savefig(filename)
+    plt.close()
+
 def prune_tree(node):
     """Recursively prune branches where Lando has fewer points than Max."""
     if not node.children:
@@ -93,9 +131,9 @@ def main():
     logging.info("Visualizing the pruned race outcome tree...")
     visualize_tree_pyvis(pruned_tree, filename="pruned_race_outcome_tree.html", title="Pruned Race Outcome Tree")
 
-    # Save the pruned tree as an image
-    # logging.info("Saving the pruned race outcome tree as an image...")
-    # imgkit.from_file('pruned_race_outcome_tree.html', 'pruned_race_outcome_tree.jpg')
+    # Save the pruned tree as an image using NetworkX and matplotlib
+    logging.info("Saving the pruned race outcome tree as an image...")
+    visualize_tree_networkx(pruned_tree, filename="pruned_race_outcome_tree.png")
 
     logging.info("Counting leaf nodes after pruning...")
     total_leaf_nodes_after_pruning = count_leaf_nodes(pruned_tree)
