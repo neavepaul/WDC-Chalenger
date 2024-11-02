@@ -2,14 +2,15 @@ import json
 import logging
 from pyvis.network import Network
 import networkx as nx
+import imgkit
 from tree import build_tree_stream, serialize_tree, deserialize_tree, count_leaf_nodes, save_tree_to_pickle
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 scores = {
-    'max': 362,
-    'lando': 315
+    'max': 368,
+    'lando': 323
 }
 
 race_schedule = {
@@ -45,7 +46,6 @@ def visualize_tree_pyvis(tree_node, filename="tree_visualization.html", title="T
     add_edges(graph, tree_node)
 
     net = Network(notebook=True, height='750px', width='100%', directed=True)
-
     net.from_nx(graph)
 
     root_description = f"M: {tree_node.max_points}, L: {tree_node.lando_points}"
@@ -68,7 +68,7 @@ def prune_tree(node):
             pruned_children.append(pruned_child)
 
     node.children = pruned_children
-    return node if pruned_children or node.lando_points >= node.max_points else None
+    return node if pruned_children or node.lando_points > node.max_points else None
 
 def main():
     remaining_races = ["Brazil", "Las Vegas", "Qatar", "Abu Dhabi"]
@@ -79,21 +79,23 @@ def main():
     tree_node = build_tree_stream(initial_max_points, initial_lando_points, remaining_races)
     logging.info("Race outcome tree construction completed.")
 
-    logging.info("Visualizing the full race outcome tree...")
-    visualize_tree_pyvis(tree_node, filename="full_race_outcome_tree.html", title="Full Race Outcome Tree")
-
     logging.info("Counting leaf nodes before pruning...")
     total_leaf_nodes_before_pruning = count_leaf_nodes(tree_node)
     logging.info(f"Total leaf nodes before pruning: {total_leaf_nodes_before_pruning}")
 
     logging.info("Pruning the tree to remove branches where Lando loses...")
     pruned_tree = prune_tree(tree_node)
-    
+
     # Save the tree node to a pickle file
     save_tree_to_pickle(tree_node)
 
+    # Save the pruned tree as an HTML file
     logging.info("Visualizing the pruned race outcome tree...")
     visualize_tree_pyvis(pruned_tree, filename="pruned_race_outcome_tree.html", title="Pruned Race Outcome Tree")
+
+    # Save the pruned tree as an image
+    # logging.info("Saving the pruned race outcome tree as an image...")
+    # imgkit.from_file('pruned_race_outcome_tree.html', 'pruned_race_outcome_tree.jpg')
 
     logging.info("Counting leaf nodes after pruning...")
     total_leaf_nodes_after_pruning = count_leaf_nodes(pruned_tree)
@@ -101,7 +103,7 @@ def main():
 
     # Calculate probability of Lando winning the WDC
     probability_of_lando_winning = total_leaf_nodes_after_pruning / total_leaf_nodes_before_pruning if total_leaf_nodes_before_pruning > 0 else 0
-    logging.info(f"Probability of Lando winning the WDC: {probability_of_lando_winning:.2f}")
+    logging.info(f"Probability of Lando winning the WDC: {probability_of_lando_winning*100:.2f}%")
 
     # Save probability of Lando winning the WDC to a text file  
     with open("lando_prob.txt", "w") as file:
