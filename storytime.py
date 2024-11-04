@@ -23,14 +23,16 @@ def generate_story(tree_node, probability_of_lando_winning, filename="race_story
             traverse(next_node, depth + 1)
 
     traverse(tree_node)
+    return "\n".join(story_lines)
 
     # Add a final line to the story
-    story_lines.append("Create an enthralling story detailing the four races that led to Lando winning the WDC. talk about strategies and events also\n")
+    # story_lines.append("Create an enthralling story detailing the four races that led to Lando winning the WDC. talk about strategies and events also\n")
 
-    # Save the story
-    with open(filename, "w") as file:
-        file.write("\n".join(story_lines))
-    print(f"Story saved to {filename}")
+    # # Save the story
+    # with open(filename, "w") as file:
+    #     file.write("\n".join(story_lines))
+    # print(f"Story saved to {filename}")
+
 
 def load_tree_from_pickle(filename="tree_node.pkl"):
     """Load the tree node from a pickle file."""
@@ -44,7 +46,7 @@ def main():
     with open("lando_prob.txt", "r") as file:
         probability_of_lando_winning = float(file.read().split()[-1])
     
-    generate_story(tree_node, probability_of_lando_winning)
+    return generate_story(tree_node, probability_of_lando_winning) 
 
 if __name__ == "__main__":
     main()
