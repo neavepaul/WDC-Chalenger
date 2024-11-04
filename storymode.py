@@ -1,7 +1,9 @@
 import pickle
 import random
+from groq import Groq
+from dotenv import load_dotenv
 
-def generate_story(tree_node, probability_of_lando_winning, filename="race_story.txt"):
+def generate_story(tree_node, probability_of_lando_winning):
     """Generate a story based on a random path leading to Lando's victory and save it to a text file."""
     story_lines = []
 
@@ -25,15 +27,6 @@ def generate_story(tree_node, probability_of_lando_winning, filename="race_story
     traverse(tree_node)
     return "\n".join(story_lines)
 
-    # Add a final line to the story
-    # story_lines.append("Create an enthralling story detailing the four races that led to Lando winning the WDC. talk about strategies and events also\n")
-
-    # # Save the story
-    # with open(filename, "w") as file:
-    #     file.write("\n".join(story_lines))
-    # print(f"Story saved to {filename}")
-
-
 def load_tree_from_pickle(filename="tree_node.pkl"):
     """Load the tree node from a pickle file."""
     with open(filename, 'rb') as file:
@@ -46,7 +39,32 @@ def main():
     with open("lando_prob.txt", "r") as file:
         probability_of_lando_winning = float(file.read().split()[-1])
     
-    return generate_story(tree_node, probability_of_lando_winning) 
+    story = generate_story(tree_node, probability_of_lando_winning)
+    
+    load_dotenv()
+    client = Groq()
+    completion = client.chat.completions.create(
+        model="llama-3.2-90b-vision-preview",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are F1GPT, given context about season outcomes, create an enthralling story detailing the four races that led to Lando winning the WDC. Also, talk about strategies and events."
+            },
+            {
+                "role": "user",
+                "content": story
+            },
+        ],
+        temperature=1,
+        max_tokens=1024,
+        top_p=1,
+        stream=False,
+        stop=None,
+    )
+
+    # save the story to a markdown file
+    with open("story.txt", "w") as file:
+        file.write(completion.choices[0].message.content)
 
 if __name__ == "__main__":
     main()
