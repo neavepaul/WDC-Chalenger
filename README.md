@@ -1,4 +1,4 @@
-# WDC Simulation: Can Lando Chase Down Max?
+# 🏎️WDC Simulation: Can Lando Chase Down Max?🏁
 
 The World Drivers’ Championship (WDC) seemed like it was securely in Max Verstappen’s hands this season—after all, he’s had the fastest car on the grid by a country mile. But while Max has been untouchable, it's safe to say Red Bull’s “team” approach doesn’t exactly ring true; let’s be honest, they have _one_ driver seriously vying for the title!
 
