@@ -9,7 +9,7 @@ def generate_story(tree_node, probability_of_lando_winning):
 
     def traverse(node, depth=0):
         if depth == 0:
-            story_lines.append("This is a situation where Lando can win the WDC in F1...\nPoints as of Mexico GP are Max: 362, Lando: 315\n")
+            story_lines.append("This is a situation where Lando can win the WDC in F1...\nPoints as of Brazil GP are Max: 393, Lando: 331\n")
             story_lines.append(f"Probability of Lando winning the WDC is {probability_of_lando_winning:.2f}\n")
         
         race_desc = node.description.get("race", "unknown race")

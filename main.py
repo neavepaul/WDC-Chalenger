@@ -10,8 +10,8 @@ from tree import build_tree_stream, serialize_tree, deserialize_tree, count_leaf
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 scores = {
-    'max': 367,
-    'lando': 323
+    'max': 393,
+    'lando': 331
 }
 
 race_schedule = {
@@ -109,7 +109,7 @@ def prune_tree(node):
     return node if pruned_children or node.lando_points > node.max_points else None
 
 def main():
-    remaining_races = ["Brazil", "Las Vegas", "Qatar", "Abu Dhabi"]
+    remaining_races = ["Las Vegas", "Qatar", "Abu Dhabi"]
     initial_max_points = scores['max']
     initial_lando_points = scores['lando']
 
@@ -145,7 +145,7 @@ def main():
 
     # Save probability of Lando winning the WDC to a text file  
     with open("lando_prob.txt", "w") as file:
-        file.write(f"Probability of Lando winning the WDC: {probability_of_lando_winning:.2f}")
+        file.write(f"Probability of Lando winning the WDC: {probability_of_lando_winning*100:.2f}")
 
 if __name__ == "__main__":
     main()
